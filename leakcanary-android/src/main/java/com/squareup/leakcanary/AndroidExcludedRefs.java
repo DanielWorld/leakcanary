@@ -28,10 +28,10 @@ import static android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH_MR1;
 import static android.os.Build.VERSION_CODES.JELLY_BEAN;
 import static android.os.Build.VERSION_CODES.KITKAT;
 import static android.os.Build.VERSION_CODES.LOLLIPOP;
+import static android.os.Build.VERSION_CODES.LOLLIPOP_MR1;
 import static android.os.Build.VERSION_CODES.M;
 import static com.squareup.leakcanary.AndroidWatchExecutor.LEAK_CANARY_THREAD_NAME;
 import static com.squareup.leakcanary.internal.LeakCanaryInternals.LG;
-import static com.squareup.leakcanary.internal.LeakCanaryInternals.LOLLIPOP_MR1;
 import static com.squareup.leakcanary.internal.LeakCanaryInternals.MOTOROLA;
 import static com.squareup.leakcanary.internal.LeakCanaryInternals.NVIDIA;
 import static com.squareup.leakcanary.internal.LeakCanaryInternals.SAMSUNG;
@@ -150,7 +150,7 @@ public enum AndroidExcludedRefs {
     }
   },
 
-  INPUT_METHOD_MANAGER__ROOT_VIEW(SDK_INT >= ICE_CREAM_SANDWICH_MR1 && SDK_INT <= LOLLIPOP_MR1) {
+  INPUT_METHOD_MANAGER__ROOT_VIEW(SDK_INT >= ICE_CREAM_SANDWICH_MR1 && SDK_INT <= M) {
     @Override void add(ExcludedRefs.Builder excluded) {
       excluded.instanceField("android.view.inputmethod.InputMethodManager", "mCurRootView")
           .reason("The singleton InputMethodManager is holding a reference to mCurRootView long"
@@ -372,6 +372,21 @@ public enum AndroidExcludedRefs {
               + " Android M, and the AudioManager now uses the application's context."
               + " Tracked here: https://code.google.com/p/android/issues/detail?id=152173"
               + " Fix: https://gist.github.com/jankovd/891d96f476f7a9ce24e2");
+    }
+  },
+
+  EDITTEXT_BLINK_MESSAGEQUEUE {
+    @Override void add(ExcludedRefs.Builder excluded) {
+      excluded.instanceField("android.widget.Editor$Blink", "this$0")
+          .reason("The EditText Blink of the Cursor is implemented using a callback and Messages,"
+              + " which trigger the display of the Cursor. If an AlertDialog or DialogFragment that"
+              + " contains a blinking cursor is detached a message is posted with a delay after the"
+              + " dialog has been closed and as a result leaks the Activity."
+              + " This can be fixed manually by calling setCursorEnabled(false) in the dismiss()"
+              + " method of the dialog."
+              + " Tracked here: https://code.google.com/p/android/issues/detail?id=188551"
+              + " Fixed in AOSP: https://android.googlesource.com/platform/frameworks/base/+"
+              + "/5b734f2430e9f26c769d6af8ea5645e390fcf5af%5E%21/");
     }
   },
 

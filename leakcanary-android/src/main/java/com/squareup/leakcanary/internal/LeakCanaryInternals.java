@@ -29,6 +29,7 @@ import android.content.pm.ServiceInfo;
 import com.squareup.leakcanary.CanaryLog;
 import com.squareup.leakcanary.R;
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -42,8 +43,6 @@ import static android.os.Build.VERSION_CODES.JELLY_BEAN;
 
 public final class LeakCanaryInternals {
 
-  // SDK INT for API 22.
-  public static final int LOLLIPOP_MR1 = 22;
   public static final String SAMSUNG = "samsung";
   public static final String MOTOROLA = "motorola";
   public static final String LG = "LGE";
@@ -114,10 +113,14 @@ public final class LeakCanaryInternals {
     ActivityManager activityManager =
         (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
     ActivityManager.RunningAppProcessInfo myProcess = null;
-    for (ActivityManager.RunningAppProcessInfo process : activityManager.getRunningAppProcesses()) {
-      if (process.pid == myPid) {
-        myProcess = process;
-        break;
+    List<ActivityManager.RunningAppProcessInfo> runningProcesses =
+        activityManager.getRunningAppProcesses();
+    if (runningProcesses != null) {
+      for (ActivityManager.RunningAppProcessInfo process : runningProcesses) {
+        if (process.pid == myPid) {
+          myProcess = process;
+          break;
+        }
       }
     }
     if (myProcess == null) {
